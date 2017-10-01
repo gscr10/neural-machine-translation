@@ -80,9 +80,9 @@ And for more, read the papers that introduced these topics:
    Translate <https://arxiv.org/abs/1409.0473>`__
 -  `A Neural Conversational Model <http://arxiv.org/abs/1506.05869>`__
 
-
 **Requirements**
 """
+
 from __future__ import unicode_literals, print_function, division
 from io import open
 import unicodedata
@@ -139,7 +139,6 @@ use_cuda = torch.cuda.is_available()
 #
 #
 
-
 ######################################################################
 # We'll need a unique index per word to use as the inputs and targets of
 # the networks later. To keep track of all this we will use a helper class
@@ -150,7 +149,6 @@ use_cuda = torch.cuda.is_available()
 
 SOS_token = 0
 EOS_token = 1
-
 
 class Lang:
     def __init__(self, name):
@@ -173,7 +171,6 @@ class Lang:
         else:
             self.word2count[word] += 1
 
-
 ######################################################################
 # The files are all in Unicode, to simplify we will turn Unicode
 # characters to ASCII, make everything lowercase, and trim most
@@ -190,13 +187,11 @@ def unicodeToAscii(s):
 
 # Lowercase, trim, and remove non-letter characters
 
-
 def normalizeString(s):
     s = unicodeToAscii(s.lower().strip())
     s = re.sub(r"([.!?])", r" \1", s)
     s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
     return s
-
 
 ######################################################################
 # To read the data file we will split the file into lines, and then split
@@ -209,7 +204,8 @@ def readLangs(lang1, lang2, reverse=False):
     print("Reading lines...")
 
     # Read the file and split into lines
-    lines = open('data/%s-%s.txt' % (lang1, lang2), encoding='utf-8').\
+    #lines = open('data/%s-%s.txt' % (lang1, lang2), encoding='utf-8').\
+    lines = open('data/%s.txt' % (lang2), encoding='utf-8').\
         read().strip().split('\n')
 
     # Split every line into pairs and normalize
@@ -225,7 +221,6 @@ def readLangs(lang1, lang2, reverse=False):
         output_lang = Lang(lang2)
 
     return input_lang, output_lang, pairs
-
 
 ######################################################################
 # Since there are a *lot* of example sentences and we want to train
@@ -247,16 +242,13 @@ eng_prefixes = (
     "they are", "they re "
 )
 
-
 def filterPair(p):
     return len(p[0].split(' ')) < MAX_LENGTH and \
         len(p[1].split(' ')) < MAX_LENGTH and \
         p[1].startswith(eng_prefixes)
 
-
 def filterPairs(pairs):
     return [pair for pair in pairs if filterPair(pair)]
-
 
 ######################################################################
 # The full process for preparing the data is:
@@ -281,9 +273,9 @@ def prepareData(lang1, lang2, reverse=False):
     return input_lang, output_lang, pairs
 
 
-input_lang, output_lang, pairs = prepareData('eng', 'fra', True)
+#input_lang, output_lang, pairs = prepareData('eng', 'fra', True)
+input_lang, output_lang, pairs = prepareData('eng', 'por', True)
 print(random.choice(pairs))
-
 
 ######################################################################
 # The Seq2Seq Model
@@ -319,7 +311,6 @@ print(random.choice(pairs))
 # ideal case, encodes the "meaning" of the input sequence into a single
 # vector â€” a single point in some N dimensional space of sentences.
 #
-
 
 ######################################################################
 # The Encoder
@@ -365,7 +356,6 @@ class EncoderRNN(nn.Module):
 # The decoder is another RNN that takes the encoder output vector(s) and
 # outputs a sequence of words to create the translation.
 #
-
 
 ######################################################################
 # Simple Decoder
@@ -417,7 +407,6 @@ class DecoderRNN(nn.Module):
 # save space we'll be going straight for the gold and introducing the
 # Attention Mechanism.
 #
-
 
 ######################################################################
 # Attention Decoder
@@ -492,7 +481,6 @@ class AttnDecoderRNN(nn.Module):
         else:
             return result
 
-
 ######################################################################
 # .. note:: There are other forms of attention that work around the length
 #   limitation by using a relative position approach. Read about "local
@@ -514,7 +502,6 @@ class AttnDecoderRNN(nn.Module):
 def indexesFromSentence(lang, sentence):
     return [lang.word2index[word] for word in sentence.split(' ')]
 
-
 def variableFromSentence(lang, sentence):
     indexes = indexesFromSentence(lang, sentence)
     indexes.append(EOS_token)
@@ -524,12 +511,10 @@ def variableFromSentence(lang, sentence):
     else:
         return result
 
-
 def variablesFromPair(pair):
     input_variable = variableFromSentence(input_lang, pair[0])
     target_variable = variableFromSentence(output_lang, pair[1])
     return (input_variable, target_variable)
-
 
 ######################################################################
 # Training the Model
@@ -559,7 +544,6 @@ def variablesFromPair(pair):
 #
 
 teacher_forcing_ratio = 0.5
-
 
 def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length=MAX_LENGTH):
     encoder_hidden = encoder.initHidden()
@@ -617,7 +601,6 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
     return loss.data[0] / target_length
 
-
 ######################################################################
 # This is a helper function to print time elapsed and estimated time
 # remaining given the current time and progress %.
@@ -626,12 +609,10 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 import time
 import math
 
-
 def asMinutes(s):
     m = math.floor(s / 60)
     s -= m * 60
     return '%dm %ds' % (m, s)
-
 
 def timeSince(since, percent):
     now = time.time()
@@ -639,7 +620,6 @@ def timeSince(since, percent):
     es = s / (percent)
     rs = es - s
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
-
 
 ######################################################################
 # The whole training process looks like this:
@@ -680,14 +660,12 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
             print_loss_total = 0
             print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
                                          iter, iter / n_iters * 100, print_loss_avg))
-
         if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / plot_every
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
 
     showPlot(plot_losses)
-
 
 ######################################################################
 # Plotting results
@@ -701,7 +679,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-
 def showPlot(points):
     plt.figure()
     fig, ax = plt.subplots()
@@ -709,7 +686,6 @@ def showPlot(points):
     loc = ticker.MultipleLocator(base=0.2)
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
-
 
 ######################################################################
 # Evaluation
@@ -760,7 +736,6 @@ def evaluate(encoder, decoder, sentence, max_length=MAX_LENGTH):
 
     return decoded_words, decoder_attentions[:di + 1]
 
-
 ######################################################################
 # We can evaluate random sentences from the training set and print out the
 # input, target, and output to make some subjective quality judgements:
@@ -775,7 +750,6 @@ def evaluateRandomly(encoder, decoder, n=10):
         output_sentence = ' '.join(output_words)
         print('<', output_sentence)
         print('')
-
 
 ######################################################################
 # Training and Evaluating
@@ -805,13 +779,13 @@ if use_cuda:
     encoder1 = encoder1.cuda()
     attn_decoder1 = attn_decoder1.cuda()
 
-trainIters(encoder1, attn_decoder1, 75000, print_every=5000)
+#trainIters(encoder1, attn_decoder1, 75000, print_every=10000)
+trainIters(encoder1, attn_decoder1, 75000, print_every=10)
 
 ######################################################################
 #
 
 evaluateRandomly(encoder1, attn_decoder1)
-
 
 ######################################################################
 # Visualizing Attention
@@ -828,9 +802,9 @@ evaluateRandomly(encoder1, attn_decoder1)
 #
 
 output_words, attentions = evaluate(
-    encoder1, attn_decoder1, "je suis trop froid .")
+    #encoder1, attn_decoder1, "je suis trop froid .")
+    encoder1, attn_decoder1, "eu sou estudante .")
 plt.matshow(attentions.numpy())
-
 
 ######################################################################
 # For a better viewing experience we will do the extra work of adding axes
@@ -855,7 +829,6 @@ def showAttention(input_sentence, output_words, attentions):
 
     plt.show()
 
-
 def evaluateAndShowAttention(input_sentence):
     output_words, attentions = evaluate(
         encoder1, attn_decoder1, input_sentence)
@@ -863,15 +836,17 @@ def evaluateAndShowAttention(input_sentence):
     print('output =', ' '.join(output_words))
     showAttention(input_sentence, output_words, attentions)
 
+#evaluateAndShowAttention("elle a cinq ans de moins que moi .")
+evaluateAndShowAttention("eu vou trabalhar de bicicleta .")
 
-evaluateAndShowAttention("elle a cinq ans de moins que moi .")
+#evaluateAndShowAttention("elle est trop petit .")
+evaluateAndShowAttention("eu posso provar isso .")
 
-evaluateAndShowAttention("elle est trop petit .")
+#evaluateAndShowAttention("je ne crains pas de mourir .")
+evaluateAndShowAttention("compre uma bebida para tom .")
 
-evaluateAndShowAttention("je ne crains pas de mourir .")
-
-evaluateAndShowAttention("c est un jeune directeur plein de talent .")
-
+#evaluateAndShowAttention("c est un jeune directeur plein de talent .")
+evaluateAndShowAttention("limpe o seu quarto .")
 
 ######################################################################
 # Exercises
