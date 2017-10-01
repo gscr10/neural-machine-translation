@@ -36,7 +36,7 @@ another. An encoder network condenses an input sequence into a vector,
 and a decoder network unfolds that vector into a new sequence.
 
 .. figure:: /_static/img/seq-seq-images/seq2seq.png
-   :alt: 
+   :alt:
 
 To improve upon this model we'll use an `attention
 mechanism <https://arxiv.org/abs/1409.0473>`__, which lets the decoder
@@ -553,10 +553,10 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
     input_length = input_variable.size()[0]
     target_length = target_variable.size()[0]
-    
+
     encoder_outputs = Variable(torch.zeros(max_length, encoder.hidden_size))
     encoder_outputs = encoder_outputs.cuda() if use_cuda else encoder_outputs
-   
+
     loss = 0
 
     for ei in range(input_length):
@@ -566,7 +566,7 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
     decoder_input = Variable(torch.LongTensor([[SOS_token]]))
     decoder_input = decoder_input.cuda() if use_cuda else decoder_input
-    
+
     decoder_hidden = encoder_hidden
 
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -586,10 +586,10 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
                 decoder_input, decoder_hidden, encoder_output, encoder_outputs)
             topv, topi = decoder_output.data.topk(1)
             ni = topi[0][0]
-            
+
             decoder_input = Variable(torch.LongTensor([[ni]]))
             decoder_input = decoder_input.cuda() if use_cuda else decoder_input
-            
+
             loss += criterion(decoder_output, target_variable[di])
             if ni == EOS_token:
                 break
@@ -649,7 +649,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
         training_pair = training_pairs[iter - 1]
         input_variable = training_pair[0]
         target_variable = training_pair[1]
- 
+
         loss = train(input_variable, target_variable, encoder,
                      decoder, encoder_optimizer, decoder_optimizer, criterion)
         print_loss_total += loss
@@ -680,7 +680,7 @@ import matplotlib.ticker as ticker
 import numpy as np
 
 def showPlot(points):
-    plt.figure()
+    #plt.figure()
     fig, ax = plt.subplots()
     # this locator puts ticks at regular intervals
     loc = ticker.MultipleLocator(base=0.2)
@@ -730,7 +730,7 @@ def evaluate(encoder, decoder, sentence, max_length=MAX_LENGTH):
             break
         else:
             decoded_words.append(output_lang.index2word[ni])
-        
+
         decoder_input = Variable(torch.LongTensor([[ni]]))
         decoder_input = decoder_input.cuda() if use_cuda else decoder_input
 
@@ -764,7 +764,7 @@ def evaluateRandomly(encoder, decoder, n=10):
 # single GRU layer. After about 40 minutes on a MacBook CPU we'll get some
 # reasonable results.
 #
-# .. Note:: 
+# .. Note::
 #    If you run this notebook you can train, interrupt the kernel,
 #    evaluate, and continue training later. Comment out the lines where the
 #    encoder and decoder are initialized and run ``trainIters`` again.
@@ -780,7 +780,7 @@ if use_cuda:
     attn_decoder1 = attn_decoder1.cuda()
 
 #trainIters(encoder1, attn_decoder1, 75000, print_every=10000)
-trainIters(encoder1, attn_decoder1, 75000, print_every=10)
+trainIters(encoder1, attn_decoder1, 750, print_every=10)
 
 ######################################################################
 #
@@ -811,6 +811,7 @@ plt.matshow(attentions.numpy())
 # and labels:
 #
 
+#def showAttention(input_sentence, output_words, attentions):
 def showAttention(input_sentence, output_words, attentions):
     # Set up figure with colorbar
     fig = plt.figure()
@@ -834,6 +835,7 @@ def evaluateAndShowAttention(input_sentence):
         encoder1, attn_decoder1, input_sentence)
     print('input =', input_sentence)
     print('output =', ' '.join(output_words))
+    #showAttention(input_sentence, output_words, attentions)
     showAttention(input_sentence, output_words, attentions)
 
 #evaluateAndShowAttention("elle a cinq ans de moins que moi .")
@@ -843,10 +845,10 @@ evaluateAndShowAttention("eu vou trabalhar de bicicleta .")
 evaluateAndShowAttention("eu posso provar isso .")
 
 #evaluateAndShowAttention("je ne crains pas de mourir .")
-evaluateAndShowAttention("compre uma bebida para tom .")
+evaluateAndShowAttention("ela esta almocando agora .")
 
 #evaluateAndShowAttention("c est un jeune directeur plein de talent .")
-evaluateAndShowAttention("limpe o seu quarto .")
+evaluateAndShowAttention("nos estamos procurando um voluntario .")
 
 ######################################################################
 # Exercises
